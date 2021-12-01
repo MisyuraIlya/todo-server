@@ -29,7 +29,7 @@ router.post('/todos', async (request , response) => {
     const id = uuidv4()
     const title =  request.body.title
     if(!request.body.title) {
-        response.status(400).json('title didnt writen')
+        response.status(400).json('title dißnt writen')
     }
     if(!request.body.description) {
         response.status(400).json('description didnt writen')
@@ -49,11 +49,10 @@ router.post('/todos/:id/subtodos/:subid', async (request , response) => {
     if(!request.body.subdescription) {
         response.status(400).json('description didnt writen')
     }
-        const id = uuidv4()
-        const parentid = request.body.id
-        const ended = null
-        const subdescription = request.body.subdescription
-
+    const id = uuidv4()
+    const parentid = request.body.id
+    const ended = null
+    const subdescription = request.body.subdescription
     const status = "ACTIVE"
     const sql = "INSERT INTO todo_sub (id, parentid, created, ended, subdescription, status) VALUES (?, ?, now(), ?, ?, ?)"
     const result = await query(sql,[id, parentid, ended, subdescription, status])
@@ -68,7 +67,6 @@ router.get('/todos',  async (request, response) => {
     const total = result[0].count
     const numberOfPages = Math.ceil(total / LIMIT);
     let page = request.query.page ? Number(request.query.page) : 1;
-    console.log(page)
     if (page > numberOfPages) {
         response.redirect('/api/todoss?page='+encodeURIComponent(numberOfPages));
     }else if(page < 1){
@@ -83,26 +81,26 @@ router.get('/todos',  async (request, response) => {
 })
 
 router.get('/subhistory', async (request, response) => {
-        const sql = "SELECT * FROM todo_sub ;"
-        const result = await query(sql)
-        response.send(result)
+    const sql = "SELECT * FROM todo_sub ;"
+    const result = await query(sql)
+    response.send(result)
     })
 
 router.get('/subtodos/:id', async (request, response) => {
     if(!request.params.id){ 
         response.status(400).json('description didnt writen')
     }
-        const id =  request.params.id
-        const sql = "SELECT * FROM todo_sub WHERE parentid  = ?"
-        const result = await query(sql,id)
-        response.send(result)
+    const id =  request.params.id
+    const sql = "SELECT * FROM todo_sub WHERE parentid  = ?"
+    const result = await query(sql,id)
+    response.send(result)
 }) 
 
 router.put('/todos/:id',  async (request,response) => {
-        const id =  request.params.id
-        const sql =  `UPDATE todo_list SET status = 'DONE' , ended = now()  WHERE id = ? ; `;
-        const result = await query(sql,id)
-        response.send('ok')
+    const id =  request.params.id
+    const sql =  `UPDATE todo_list SET status = 'DONE' , ended = now()  WHERE id = ? ; `;
+    const result = await query(sql,id)
+    response.send('ok')
 }) 
 
 router.put('/subtodos/update/:id/:status', async (request,response) => {
@@ -112,39 +110,39 @@ router.put('/subtodos/update/:id/:status', async (request,response) => {
     if(!request.params.status){ 
         response.status(400).json('description didnt writen')
     }
-        const id =  request.params.id
-        const status =  request.params.status
-        if(status === 'DONE'){
-            const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = now()  WHERE id = ? ; `;
-            db.query(queryFirst,id , (err, result) => {
-                 response.send('ok')
-            })
-        } else {
-            const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = null  WHERE id = ? ; `;
-            db.query(queryFirst,id , (err, result) => {
-                 response.send('ok')
-            })
-        }
+    const id =  request.params.id
+    const status =  request.params.status
+    if(status === 'DONE'){
+        const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = now()  WHERE id = ? ; `;
+        db.query(queryFirst,id , (err, result) => {
+            response.send('ok')
+        })
+    } else {
+        const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = null  WHERE id = ? ; `;
+        db.query(queryFirst,id , (err, result) => {
+            response.send('ok')
+        })
+    }
 })
 
 router.delete('/todos/:id', async (request, response) => {
     if(!request.params.id){ 
         response.status(400).json('description didnt writen')
     }
-        const id =  request.params.id
-        const sql = "DELETE FROM todo_list WHERE id = ?";
-        const result = await query(sql,id)
-        response.send('ok')
+    const id =  request.params.id
+    const sql = "DELETE FROM todo_list WHERE id = ?";
+    const result = await query(sql,id)
+    response.send('ok')
 }) 
 
 router.delete('/subtodos/:id',async (request, response) => {
     if(!request.params.id){ 
         response.status(400).json('description didnt writen')
     }
-        const id =  request.params.id
-        const sql = "DELETE FROM todo_sub WHERE id = ?";
-        const result = await query(sql,id)
-        response.send('ok')
+    const id =  request.params.id
+    const sql = "DELETE FROM todo_sub WHERE id = ?";
+    const result = await query(sql,id)
+    response.send('ok')
 }) 
 
 
