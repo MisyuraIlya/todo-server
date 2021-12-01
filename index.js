@@ -24,7 +24,7 @@ reponse example
 { // HTTP 500 Mysql connection is down
     status: 'SYSTEM_ERROR',
     data: null,
-    error: 'MySQL not found or some'
+    error: 'MySQL not found or some'aß
 }
 */
 
