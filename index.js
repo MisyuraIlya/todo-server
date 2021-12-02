@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import mysql from 'mysql';
-import router from './router';
+import router from './router.js';
 
 const app = express();
 const PORT = 3004;

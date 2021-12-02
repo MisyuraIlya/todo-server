@@ -111,17 +111,13 @@ router.put('/subtodos/update/:id/:status', async (request, response) => {
   const { id } = request.params;
   const { status } = request.params;
   if (status === 'DONE') {
-    const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = now()  WHERE id = ? ; `;
-    db.query(queryFirst, id, (err, result) => {
-      console.log(err);
-      response.send(result);
-    });
+    const sql = `UPDATE todo_sub SET status = '${status}' , ended = now()  WHERE id = ? ; `;
+    const result = await query(sql, id);
+    response.send(result)
   } else {
-    const queryFirst = `UPDATE todo_sub SET status = '${status}' , ended = null  WHERE id = ? ; `;
-    db.query(queryFirst, id, (err, result) => {
-      console.log(err);
-      response.send(result);
-    });
+    const sql = `UPDATE todo_sub SET status = '${status}' , ended = null  WHERE id = ? ; `;
+    const result = await query(sql, id);
+    response.send(result)
   }
 });
 
