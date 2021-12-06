@@ -152,7 +152,7 @@ router.post('/auth/signup', async (request, response) => {
     } else if (typeof result !== 'undefined' && result.length > 0) {
       const results = JSON.parse(JSON.stringify(result))
       results.map(rs => {
-        response.status(302).json({message: `member with this - ${rs.email} already registered`})
+        response.status(302).json(`member with this - ${rs.email} already registered`)
         return true
       })
     } else {
@@ -166,7 +166,7 @@ router.post('/auth/signup', async (request, response) => {
         if(err) {
           response.status(400).JSON(err)
         } else {
-          response.status(200).json({message: 'Registration succses'})
+          response.status(200).json('Registration succses')
         }
       })
     }
@@ -174,16 +174,17 @@ router.post('/auth/signup', async (request, response) => {
 })
 
 router.get('/auth/signin', async (request, response) => {
-  const sql = `SELECT id, email, password FROM users WHERE email = "${request.body.email}"`
+   console.log(request.query.email)
+  const sql = `SELECT id, email, password FROM users WHERE email = "${request.query.email}"`
   db.query(sql, (err, result, fields) => {
     if(err) {
       response.status(400).json(err)
     } else if(result.length <= 0) {
-      response.status(401).json(`Member with this ${request.body.email} not found`)
+      response.status(401).json(`Member with this ${request.query.email} not found`)
     } else {
       const results = JSON.parse(JSON.stringify(result))
       results.map(rs => {
-        const password = compareSync(request.body.password, rs.password)
+        const password = compareSync(request.query.password, rs.password)
         if (password) {
           const token = jwt.sign({
             userId: rs.id,
