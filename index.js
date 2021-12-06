@@ -4,7 +4,7 @@ import mysql from 'mysql';
 import router from './router.js';
 
 const app = express();
-const PORT = 3004;
+const PORT = 3005;
 
 /*
 reponse example

@@ -1,7 +1,8 @@
-import Router from 'express';
+import Router, { request, response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import mysql from 'mysql';
-
+import { compareSync, genSaltSync, hashSync } from 'bcrypt';
+import jwt from "jsonwebtoken"
 const router = new Router();
 
 const LIMIT = 4;
@@ -27,7 +28,7 @@ router.post('/todos', async (request, response) => {
   const id = uuidv4();
   const { title } = request.body;
   if (!request.body.title) {
-    response.status(400).json('title dißnt writen');
+    response.status(400).json('title didnt writen');
   }
   if (!request.body.description) {
     response.status(400).json('description didnt writen');
@@ -41,16 +42,17 @@ router.post('/todos', async (request, response) => {
 });
 
 router.post('/todos/:id/subtodos/:subid', async (request, response) => {
-  if (!request.body.id) {
-    response.status(400).json('description didnt writen');
-  }
-  if (!request.body.subdescription) {
-    response.status(400).json('description didnt writen');
-  }
+
   const id = uuidv4();
   const parentid = request.body.id;
   const ended = null;
-  const { subdescription } = request.body;
+  const  {subdescription}  = request.body;
+  if (!request.body.id) {
+    response.status(400).json('description didnt writen'); // why 400 dostn work?
+  }
+  if (!request.body) {
+    response.status(400).json('description didnt writen');
+  }
   const status = 'ACTIVE';
   const sql = 'INSERT INTO todo_sub (id, parentid, created, ended, subdescription, status) VALUES (?, ?, now(), ?, ?, ?)';
   const result = await query(sql, [id, parentid, ended, subdescription, status]);
@@ -140,5 +142,61 @@ router.delete('/subtodos/:id', async (request, response) => {
   const result = await query(sql, id);
   response.send(result);
 });
+
+router.post('/auth/signup', async (request, response) => {
+
+  const sql = `SELECT id, email, name FROM users WHERE email = "${request.body.email}"`;
+  db.query(sql, (err, result, fields) => {
+    if (err) {
+      response.status(400, err, response)
+    } else if (typeof result !== 'undefined' && result.length > 0) {
+      const results = JSON.parse(JSON.stringify(result))
+      results.map(rs => {
+        response.status(302).json({message: `member with this - ${rs.email} already registered`})
+        return true
+      })
+    } else {
+      const name = request.body.name
+      const lastname = request.body.lastname
+      const email = request.body.email
+      const salt = genSaltSync(15)
+      const password = hashSync(request.body.password, salt)
+      const sql = `INSERT INTO users (name, lastname, email, password) VALUES("${name}","${lastname}","${email}","${password}")`;
+      db.query(sql, (err,result) => {
+        if(err) {
+          response.status(400).JSON(err)
+        } else {
+          response.status(200).json({message: 'Registration succses'})
+        }
+      })
+    }
+  });
+})
+
+router.get('/auth/signin', async (request, response) => {
+  const sql = `SELECT id, email, password FROM users WHERE email = "${request.body.email}"`
+  db.query(sql, (err, result, fields) => {
+    if(err) {
+      response.status(400).json(err)
+    } else if(result.length <= 0) {
+      response.status(401).json(`Member with this ${request.body.email} not found`)
+    } else {
+      const results = JSON.parse(JSON.stringify(result))
+      results.map(rs => {
+        const password = compareSync(request.body.password, rs.password)
+        if (password) {
+          const token = jwt.sign({
+            userId: rs.id,
+            email: rs.email
+          }, 'asd', { expiresIn: 120 * 120 })
+
+          response.status(200).json({token: token})
+        } else {
+          response.status(401).json('Error')
+        }
+      })
+    }
+  })
+})
 
 export default router;
