@@ -2,7 +2,9 @@ import Router, { request, response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import mysql from 'mysql';
 import { compareSync, genSaltSync, hashSync } from 'bcrypt';
-import jwt from "jsonwebtoken"
+import jwt from 'jsonwebtoken';
+import {} from 'dotenv/config'
+
 const router = new Router();
 
 const LIMIT = 4;
@@ -42,11 +44,10 @@ router.post('/todos', async (request, response) => {
 });
 
 router.post('/todos/:id/subtodos/:subid', async (request, response) => {
-
   const id = uuidv4();
   const parentid = request.body.id;
   const ended = null;
-  const  {subdescription}  = request.body;
+  const { subdescription } = request.body;
   if (!request.body.id) {
     response.status(400).json('description didnt writen'); // why 400 dostn work?
   }
@@ -115,11 +116,11 @@ router.put('/subtodos/update/:id/:status', async (request, response) => {
   if (status === 'DONE') {
     const sql = `UPDATE todo_sub SET status = '${status}' , ended = now()  WHERE id = ? ; `;
     const result = await query(sql, id);
-    response.send(result)
+    response.send(result);
   } else {
     const sql = `UPDATE todo_sub SET status = '${status}' , ended = null  WHERE id = ? ; `;
     const result = await query(sql, id);
-    response.send(result)
+    response.send(result);
   }
 });
 
@@ -144,60 +145,86 @@ router.delete('/subtodos/:id', async (request, response) => {
 });
 
 router.post('/auth/signup', async (request, response) => {
-
   const sql = `SELECT id, email, name FROM users WHERE email = "${request.body.email}"`;
   db.query(sql, (err, result, fields) => {
     if (err) {
-      response.status(400, err, response)
+      response.status(400, err, response);
     } else if (typeof result !== 'undefined' && result.length > 0) {
-      const results = JSON.parse(JSON.stringify(result))
-      results.map(rs => {
-        response.status(302).json(`member with this - ${rs.email} already registered`)
-        return true
-      })
+      const results = JSON.parse(JSON.stringify(result));
+      results.map((rs) => {
+        response.status(302).json(`member with this - ${rs.email} already registered`);
+        return true;
+      });
     } else {
-      const name = request.body.name
-      const lastname = request.body.lastname
-      const email = request.body.email
-      const salt = genSaltSync(15)
-      const password = hashSync(request.body.password, salt)
+      const { name } = request.body;
+      const { lastname } = request.body;
+      const { email } = request.body;
+      const salt = genSaltSync(15);
+      const password = hashSync(request.body.password, salt);
       const sql = `INSERT INTO users (name, lastname, email, password) VALUES("${name}","${lastname}","${email}","${password}")`;
-      db.query(sql, (err,result) => {
-        if(err) {
-          response.status(400).JSON(err)
+      db.query(sql, (err, result) => {
+        if (err) {
+          response.status(400).JSON(err);
         } else {
-          response.status(200).json('Registration succses')
+          response.status(200).json('Registration succses');
         }
-      })
+      });
     }
   });
-})
+});
 
 router.get('/auth/signin', async (request, response) => {
-   console.log(request.query.email)
-  const sql = `SELECT id, email, password FROM users WHERE email = "${request.query.email}"`
+  console.log(request.query.email);
+  const sql = `SELECT id, email, password FROM users WHERE email = "${request.query.email}"`;
   db.query(sql, (err, result, fields) => {
-    if(err) {
-      response.status(400).json(err)
-    } else if(result.length <= 0) {
-      response.status(401).json(`Member with this ${request.query.email} not found`)
+    if (err) {
+      response.status(400).json(err);
+    } else if (result.length <= 0) {
+      response.status(401).json(`Member with this ${request.query.email} not found`);
     } else {
-      const results = JSON.parse(JSON.stringify(result))
-      results.map(rs => {
-        const password = compareSync(request.query.password, rs.password)
+      const results = JSON.parse(JSON.stringify(result));
+      results.map((rs) => {
+        const password = compareSync(request.query.password, rs.password);
         if (password) {
           const token = jwt.sign({
             userId: rs.id,
-            email: rs.email
-          }, 'asd', { expiresIn: 120 * 120 })
+            email: rs.email,
+          }, 'asd', { expiresIn: 120 * 120 });
 
-          response.status(200).json({token: token})
+          response.status(200).json({ token });
         } else {
-          response.status(401).json('Error')
+          response.status(401).json('Error');
         }
-      })
+      });
     }
-  })
+  });
+});
+//======================================================
+const posts = [
+  {
+    username: 'Kyle',
+    title: 'Post 1'
+  },
+  {
+    username: 'Jim',
+    title: 'Post 2'
+  }
+]
+
+router.get('/posts', authenticateToken, (req, res) => {
+  res.json(posts.filter(post => post.username === req.user.name))
 })
 
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization']
+  const token = authHeader && authHeader.split(' ')[1]
+  if (token == null) return res.sendStatus(401)
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, user) => {
+    console.log(err)
+    if (err) return res.sendStatus(403)
+    req.user = user
+    next()
+  })
+}
 export default router;

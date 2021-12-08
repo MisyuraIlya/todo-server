@@ -1,0 +1,29 @@
+GET http://dev.local:3005/api/posts 
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSmltIiwiaWF0IjoxNjM4OTU5ODgwLCJleHAiOjE2Mzg5NTk5MDB9.MpsmGPczCgd03dupoQUZmyeBvzCrxU6FZgDq51x4D0Q
+
+###
+
+DELETE http://dev.local:4000/logout 
+Content-Type: application/json
+
+{
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSmltIiwiaWF0IjoxNjM4OTU3NjMxfQ.fDUNAC1YyKBfpXP8ayVnT1NkaBGUEQFiqwAkkahrzDA"
+}
+
+###
+
+POST http://dev.local:4000/token 
+Content-Type: application/json
+
+{
+"token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJuYW1lIjoiSmltIiwiaWF0IjoxNjM4OTU3NjMxfQ.fDUNAC1YyKBfpXP8ayVnT1NkaBGUEQFiqwAkkahrzDA"
+}
+
+###
+
+POST http://dev.local:4000/login 
+Content-Type: application/json
+
+{
+"username": "Jim"
+}
