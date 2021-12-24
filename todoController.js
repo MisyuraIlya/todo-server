@@ -66,7 +66,6 @@ class todoController {
     sendResponse(response, [resultAll, page, limit, total], 'OK', null);
   }
 
-  // fix query per what
   async ReadTodoHistory(request, response) {
     const sql = 'SELECT * FROM todo_sub ;';
     const result = await query(sql);
@@ -80,7 +79,6 @@ class todoController {
       const result = await query(sql, id);
       sendResponse(response, result, 'OK', null);
     } else {
-      // response.json({status:400, data:null, error:'UUID is invalid'})
       sendResponse(response, null, 'BAD_REQUEST', 'UUID is invalid');
     }
   }
@@ -92,7 +90,6 @@ class todoController {
       const result = await query(sql, id);
       sendResponse(response, result, 'OK', null);
     } else {
-      // response.json({status:400, data:null, error:'Not found in db this todo'})
       sendResponse(response, null, 'BAD_REQUEST', 'Not found in db this todo');
     }
   }
@@ -103,12 +100,10 @@ class todoController {
     if (status === 'DONE') {
       const sql = 'UPDATE todo_sub SET status = ? , ended = now()  WHERE id = ? ; ';
       const result = await query(sql, [status, id]);
-      // response.json(result)
       sendResponse(response, result, 'OK', null);
     } else {
       const sql = 'UPDATE todo_sub SET status = ? , ended = null  WHERE id = ? ; ';
       const result = await query(sql, [status, id]);
-      // response.json({status:200, data:result, error:null})
       sendResponse(response, result, 'OK', null);
     }
   }
@@ -118,10 +113,8 @@ class todoController {
     if (uuidValidate(id)) {
       const sql = 'DELETE FROM todo_list WHERE id = ?';
       const result = await query(sql, id);
-      // response.json({status:200, data:result, error:'error 2'});
       sendResponse(response, result, 'OK', null);
     } else {
-      // response.json({status:400, data:null, error:"There is no id in db to delete"})
       sendResponse(response, null, 'BAD_REQUEST', 'There is no id in db to delete');
     }
   }
@@ -131,10 +124,8 @@ class todoController {
     if (uuidValidate(id)) {
       const sql = 'DELETE FROM todo_sub WHERE id = ?';
       const result = await query(sql, id);
-      // response.send({status:200, data:result, error:null})
       sendResponse(response, result, 'OK', null);
     } else {
-      // response.json({status:400, data:null, error:"There is no id in db to delete"})
       sendResponse(response, null, 'BAD_REQUEST', 'There is no id in db to delete');
     }
   }
