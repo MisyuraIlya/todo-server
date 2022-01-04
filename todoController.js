@@ -38,6 +38,7 @@ class todoController {
     const parentid = request.params.id;
     const ended = null;
     const subdescription = request.body.subDescription;
+    console.log(parentid,subdescription)
     const status = 'ACTIVE';
     const sql = 'INSERT INTO todo_sub (id, parentid, created, ended, subdescription, status) VALUES (?, ?, now(), ?, ?, ?)';
     const result = await query(sql, [id, parentid, ended, subdescription, status]);
@@ -63,7 +64,7 @@ class todoController {
     const limit = LIMIT;
     sql = `SELECT * FROM todo_list WHERE status = ? LIMIT ${startingLimit},${LIMIT} `;
     const resultAll = await query(sql, status);
-    sendResponse(response, [resultAll, page, limit, total], 'OK', null);
+    sendResponse(response, {data:resultAll, page:page, limit:limit, total:total}, 'OK', null);
   }
 
   async ReadTodoHistory(request, response) {

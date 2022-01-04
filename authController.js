@@ -48,6 +48,31 @@ function sendEmail(emaill, token) {
   });
 }
 
+function sendEmailPassword(emaill, token) {
+  const mail = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'spetsar97ilya@gmail.com',
+      pass: 'kpxoemypopltbmje',
+    },
+  });
+
+  const mailOptions = {
+    from: 'spetsar97ilya@gmail.com',
+    to: 'misyurailya5@gmail.com',
+    subject: 'Email update password ',
+    html: `<p>You requested for email reset password, kindly use this <a href="http://dev.local:3000/newpassword?token=${token}">link</a> to verify your email address</p>`,
+    
+  };
+
+  mail.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return 1;
+    }
+    return 0;
+  });
+}
+
 class authContoller {
   async SignUp(request, response) {
     const { email } = request.body;
@@ -71,7 +96,7 @@ class authContoller {
       const sql2 = 'INSERT INTO verefication (id, email, token, verify, created, updated) VALUES(?, ?, NULL, 0, now(), now())';
       const result = await query(sql, [id, name, lastname, email, password, phone]);
       const result2 = await query(sql2, [id, email]);
-      sendResponse(response, result2, 'OK', null);
+      sendResponse(response, 'Account created succsesfuly', 'OK', null);
     }
   }
 
@@ -84,8 +109,8 @@ class authContoller {
       if (result[0].verify == 0) {
         const sent = sendEmail(email, token);
         if (sent != '0') {
-          const sql = 'UPDATE verefication SET ? WHERE email = ? ';
-          db.query(sql, token, email, (error, result) => {
+          const sql = 'UPDATE verefication SET token = ? WHERE email = ? ';
+          db.query(sql, [token, email], (error, result) => {
             if (error) throw error;
           });
           sendResponse(response, { type: 'success', msg: 'The verefication link has been sent to your email address' }, 'OK', null);
@@ -96,7 +121,6 @@ class authContoller {
     } else {
       sendResponse(response, { type: 'error', msg: 'The Email is not registered' }, 'BAD_REQUEST', null);
     }
-    response.redirect('/');
   }
 
   async VerifyEmail(request, response) {
@@ -106,11 +130,8 @@ class authContoller {
       if (err) throw err;
       if (result[0].verify == 0) {
         if (result.length > 0) {
-          const data = {
-            verify: 1,
-          };
-          const sql = 'UPDATE verefication SET ? WHERE email = ? ';
-          db.query(sql, data, result[0].email, (err, result) => {
+          const sql = 'UPDATE verefication SET verify = 1 WHERE email = ? ';
+          db.query(sql, [result[0].email] , (err, result) => {
             if (err) throw err;
           });
           sendResponse(response, { type: 'success', msg: 'Your email has been verified' }, 'BAD_REQUEST', null);
@@ -120,13 +141,13 @@ class authContoller {
       } else {
         sendResponse(response, { type: 'error', msg: 'The email has been already verified' }, 'BAD_REQUEST', null);
       }
-      response.redirect('/');
+      // response.redirect('/');
     });
   }
 
-  async SignIn(request, response) {
-    const { email } = request.query;
-    const sql = 'SELECT id, email, password FROM users WHERE email = ? AND status = \'ACTIVE\' ';
+  async SignInPost(request, response) {
+    const email = request.body.email;
+    const sql = 'SELECT id,name, email, password FROM users WHERE email = ? AND status = \'ACTIVE\' ';
     db.query(sql, email, (err, result, fields) => {
       if (err) {
         sendResponse(response, null, 'BAD_REQUEST', 'Error bad request');
@@ -140,14 +161,12 @@ class authContoller {
           } else {
             const results = JSON.parse(JSON.stringify(result));
             results.map((rs) => {
-              const password = compareSync(request.query.password, rs.password);
+              const password = compareSync(request.body.password, rs.password);
               if (password) {
-                console.log('session start');
-                request.session.loggedin = true;
-                request.session.username = email;
-                response.redirect('/api/home');
-                console.log('created session');
-                sendResponse(response, { type: 'success', msg: 'the session created' }, 'OK', null);
+                request.session.user = result;
+                response.send(result);
+                // response.redirect('http://dev.local:3000/home');
+                // sendResponse(response, { type: 'success', msg: 'the session created' }, 'OK', null);
               } else {
                 sendResponse(response, null, 'BAD_REQUEST', 'Password inccorect');
               }
@@ -156,6 +175,14 @@ class authContoller {
         });
       }
     });
+  }
+
+  async SignInGet(request, response){
+    if (request.session.user) {
+      response.send({ loggedIn: true, user: request.session.user });
+    } else {
+      response.send({ loggedIn: false, user: null });
+    }
   }
 
   async Home(request, response) {
@@ -168,21 +195,23 @@ class authContoller {
   }
 
   async LogOut(request, response) {
-    request.session.destroy();
-    response.redirect('/login');
+    request.session.destroy(function(err) {
+      response.clearCookie('userId', {path: '/'}).status(200).send('log out successfully.');
+    })
   }
 
+  
   async ResetPassword(request, response) {
     const { email } = request.body;
     const sql = 'SELECT * FROM users WHERE email = ? ';
     db.query(sql, email, (err, result) => {
       if (err) throw err;
-      if (result[0].email.length > 0) {
+      if (result.length > 0) {
         const token = randtoken.generate(20);
-        const sent = sendEmail(email, token);
+        const sent = sendEmailPassword(email, token);
         if (sent != '0') {
-          const sql = 'UPDATE users SET ? WHERE email = ?';
-          db.query(sql, token, email, (err, result) => {
+          const sql = 'UPDATE users SET  token = ? WHERE email = ?';
+          db.query(sql, [token, email], (err, result) => {
             if (err) throw err;
           });
           sendResponse(response, { type: 'success', msg: 'The reset password link has been sent to your email address' }, 'OK', null);
@@ -193,32 +222,33 @@ class authContoller {
         sendResponse(response, { type: 'error', msg: 'The Email is not registered with us' }, 'BAD_REQUEST', null);
       }
 
-      request.flash(type, msg);
-      response.redirect('/');
+      // request.flash(type, msg);
+      // response.redirect('/');
     });
   }
 
   async UpdatePassword(request, response) {
-    const { token } = req.body;
+    const { token } = request.body;
+    
     const sql = 'SELECT * FROM users WHERE token = ?';
     db.query(sql, token, (err, result) => {
       if (err) throw err;
       if (result.length > 0) {
         const saltRounds = 10;
         const salt = genSaltSync(15);
-        const password = hashSync(req.body.password, salt);
-        const data = {
-          password,
-        };
-        const sql = 'UPDATE users SET ? WHERE email = ?';
-        db.query(sql, data, result[0].email, (err, result) => {
+        const password = hashSync(request.body.password, salt);
+        // const data = {
+        //   password,
+        // };
+        const sql2 = 'UPDATE users SET password = ?  WHERE email = ?';
+        db.query(sql2,  [password, result[0].email] , (err, result) => {
           if (err) throw err;
         });
-        sendResponse(response, { type: 'success', msg: 'Your password has been updated successfully' }, 'OK', null);
+        sendResponse(response, 'Your password has been updated successfully', 'OK', null);
       } else {
-        sendResponse(response, { type: 'error', msg: 'Invalid link; please try again' }, 'BAD_REQUEST', null);
+        sendResponse(response, null , 'BAD_REQUEST', 'Invalid link; please try again');
       }
-      res.redirect('/');
+      // res.redirect('/');
     });
   }
 }
