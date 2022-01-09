@@ -36,8 +36,7 @@ function sendEmail(emaill, token) {
     from: 'spetsar97ilya@gmail.com',
     to: 'misyurailya5@gmail.com',
     subject: 'Email verification ',
-    html: `<p>You requested for email verification, kindly use this <a href="http://dev.local:3006/api/verify-email?token=${token}">link</a> to verify your email address</p>`,
-
+    html: `<p>You requested for email verification, kindly use this <a href="http://dev.local:3000/verify-email?token=${token}">link</a> to verify your email address</p>`,
   };
 
   mail.sendMail(mailOptions, (error, info) => {
@@ -96,7 +95,7 @@ class authContoller {
       const sql2 = 'INSERT INTO verefication (id, email, token, verify, created, updated) VALUES(?, ?, NULL, 0, now(), now())';
       const result = await query(sql, [id, name, lastname, email, password, phone]);
       const result2 = await query(sql2, [id, email]);
-      sendResponse(response, 'Account created succsesfuly', 'OK', null);
+      sendResponse(response, 'Account created succsesfuly verify account in email', 'OK', null);
     }
   }
 
@@ -128,20 +127,24 @@ class authContoller {
     const sql = 'SELECT * FROM verefication WHERE token = ?';
     db.query(sql, token, (err, result) => {
       if (err) throw err;
+      if (result.length > 0) { 
       if (result[0].verify == 0) {
         if (result.length > 0) {
           const sql = 'UPDATE verefication SET verify = 1 WHERE email = ? ';
           db.query(sql, [result[0].email] , (err, result) => {
             if (err) throw err;
           });
-          sendResponse(response, { type: 'success', msg: 'Your email has been verified' }, 'BAD_REQUEST', null);
+          sendResponse(response, { type: 'success', msg: 'Your email has been verified' }, 'OK', null);
         } else {
-          sendResponse(response, { type: 'success', msg: 'The email has already verified' }, 'BAD_REQUEST', null);
+          sendResponse(response, { type: 'success', msg: 'The email has already verified' }, 'OK', null);
         }
       } else {
         sendResponse(response, { type: 'error', msg: 'The email has been already verified' }, 'BAD_REQUEST', null);
       }
-      // response.redirect('/');
+    } else {
+      sendResponse(response, { type: 'error', msg: 'this token didnt contain in db' }, 'BAD_REQUEST', null);
+    }
+      // response.redirect('http://dev.local:3000/signin');
     });
   }
 

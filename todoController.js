@@ -49,22 +49,27 @@ class todoController {
     const { status } = request.query;
     let sql = 'SELECT COUNT(id) AS count FROM todo_list WHERE status = ?';
     const result = await query(sql, status);
-    const total = result[0].count;
-    const numberOfPages = Math.ceil(total / LIMIT);
-    const page = request.query.page ? Number(request.query.page) : 1;
-    if (page > numberOfPages) {
-      sendResponse(response, null, 'BAD_REQUEST', 'Number of pages higher ');
+    if(result[0].count  > 0){
+      const total = result[0].count;
+      const numberOfPages = Math.ceil(total / LIMIT);
+      const page = request.query.page ? Number(request.query.page) : 1;
+      if (page > numberOfPages) {
+        sendResponse(response, null, 'BAD_REQUEST', 'Number of pages higher ');
+      }
+      if (page > numberOfPages) {
+        response.redirect(`/api/todos?page=${encodeURIComponent(numberOfPages)}`);
+      } else if (page < 1) {
+        response.redirect(`/api/todos?page=${encodeURIComponent('1')}`);
+      }
+      const startingLimit = (page - 1) * LIMIT;
+      const limit = LIMIT;
+      sql = `SELECT * FROM todo_list WHERE status = ? LIMIT ${startingLimit},${LIMIT} `;
+      const resultAll = await query(sql, status);
+      sendResponse(response, {data:resultAll, page:page, limit:limit, total:total}, 'OK', null);
+    } else {
+      sendResponse(response, null, 'BAD_REQUEST', 'No lists ');
     }
-    if (page > numberOfPages) {
-      response.redirect(`/api/todos?page=${encodeURIComponent(numberOfPages)}`);
-    } else if (page < 1) {
-      response.redirect(`/api/todos?page=${encodeURIComponent('1')}`);
-    }
-    const startingLimit = (page - 1) * LIMIT;
-    const limit = LIMIT;
-    sql = `SELECT * FROM todo_list WHERE status = ? LIMIT ${startingLimit},${LIMIT} `;
-    const resultAll = await query(sql, status);
-    sendResponse(response, {data:resultAll, page:page, limit:limit, total:total}, 'OK', null);
+
   }
 
   async ReadTodoHistory(request, response) {
