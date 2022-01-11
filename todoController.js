@@ -38,7 +38,6 @@ class todoController {
     const parentid = request.params.id;
     const ended = null;
     const subdescription = request.body.subDescription;
-    console.log(parentid,subdescription)
     const status = 'ACTIVE';
     const sql = 'INSERT INTO todo_sub (id, parentid, created, ended, subdescription, status) VALUES (?, ?, now(), ?, ?, ?)';
     const result = await query(sql, [id, parentid, ended, subdescription, status]);

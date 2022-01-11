@@ -23,7 +23,7 @@ function sendResponse(response, data = null, status = null, error = null) {
   return response.status(httpStatusCodes.status[status]).json({ status: httpStatusCodes.status[status], data, error });
 }
 
-function sendEmail(emaill, token) {
+function sendEmail(email, token) {
   const mail = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -144,7 +144,6 @@ class authContoller {
     } else {
       sendResponse(response, { type: 'error', msg: 'this token didnt contain in db' }, 'BAD_REQUEST', null);
     }
-      // response.redirect('http://dev.local:3000/signin');
     });
   }
 
@@ -167,9 +166,7 @@ class authContoller {
               const password = compareSync(request.body.password, rs.password);
               if (password) {
                 request.session.user = result;
-                response.send(result);
-                // response.redirect('http://dev.local:3000/home');
-                // sendResponse(response, { type: 'success', msg: 'the session created' }, 'OK', null);
+                sendResponse(response, { type: 'success', msg: 'the session created' }, 'OK', null);
               } else {
                 sendResponse(response, null, 'BAD_REQUEST', 'Password inccorect');
               }
@@ -224,9 +221,6 @@ class authContoller {
       } else {
         sendResponse(response, { type: 'error', msg: 'The Email is not registered with us' }, 'BAD_REQUEST', null);
       }
-
-      // request.flash(type, msg);
-      // response.redirect('/');
     });
   }
 
@@ -240,9 +234,6 @@ class authContoller {
         const saltRounds = 10;
         const salt = genSaltSync(15);
         const password = hashSync(request.body.password, salt);
-        // const data = {
-        //   password,
-        // };
         const sql2 = 'UPDATE users SET password = ?  WHERE email = ?';
         db.query(sql2,  [password, result[0].email] , (err, result) => {
           if (err) throw err;
@@ -251,7 +242,6 @@ class authContoller {
       } else {
         sendResponse(response, null , 'BAD_REQUEST', 'Invalid link; please try again');
       }
-      // res.redirect('/');
     });
   }
 }

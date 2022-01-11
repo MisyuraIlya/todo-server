@@ -17,7 +17,6 @@ class validation {
   validatePostSubTodos(request, response, next) {
     const parentid = request.params.id;
     const { subDescription } = request.body;
-    console.log(subDescription,parentid )
     if (!parentid || !subDescription) {
       sendResponse(response, null, 'BAD_REQUEST', 'title didnt writen', null);
     }
@@ -43,7 +42,6 @@ class validation {
   }
 
   validationEmail() {
-    console.log('validate email and password')
     return [
       body('email').isEmail(),
       body('password').isLength({ min: 5 }),
@@ -54,13 +52,11 @@ class validation {
     const extractedErrors = [];
 
     const errors = validationResult(request);
-    console.log(errors)
     const { name } = request.body;
     const { lastname } = request.body;
     const { phone } = request.body;
     
     if (errors.isEmpty() && isNaN(name) && isNaN(lastname) && !isNaN(phone)) {
-      console.log('validation succsses')
       return next();
     } else {
       if(!isNaN(name)) {
