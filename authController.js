@@ -34,7 +34,7 @@ function sendEmail(email, token) {
 
   const mailOptions = {
     from: 'spetsar97ilya@gmail.com',
-    to: 'misyurailya5@gmail.com',
+    to: email,
     subject: 'Email verification ',
     html: `<p>You requested for email verification, kindly use this <a href="http://dev.local:3000/verify-email?token=${token}">link</a> to verify your email address</p>`,
   };
@@ -47,7 +47,7 @@ function sendEmail(email, token) {
   });
 }
 
-function sendEmailPassword(emaill, token) {
+function sendEmailPassword(email, token) {
   const mail = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -58,7 +58,7 @@ function sendEmailPassword(emaill, token) {
 
   const mailOptions = {
     from: 'spetsar97ilya@gmail.com',
-    to: 'misyurailya5@gmail.com',
+    to: email,
     subject: 'Email update password ',
     html: `<p>You requested for email reset password, kindly use this <a href="http://dev.local:3000/newpassword?token=${token}">link</a> to verify your email address</p>`,
     
