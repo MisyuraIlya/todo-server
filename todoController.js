@@ -4,6 +4,7 @@ import { validate as uuidValidate } from 'uuid';
 // LOCAL
 import db from './config.js';
 import httpStatusCodes from './httpStatusCodes.js';
+import Schema from './schema.js'
 
 const LIMIT = 4;
 
@@ -23,79 +24,64 @@ function sendResponse(response, data = null, status = null, error = null) {
 }
 
 class todoController {
+
   async CreateTodo(request, response) {
-    const id = uuidv4();
-    const { title, description } = request.body;
-    const ended = null;
-    const status = 'ACTIVE';
-    const sql = 'INSERT INTO todo_list (id, title, created, ended, description, status) VALUES (?, ?, now(), ?, ?, ?)';
-    const result = await query(sql, [id, title, ended, description, status]);
-    sendResponse(response, result, 'OK', null);
+
+    try{
+      const {title,description} = request.body;
+      const todo = await Schema.Todos.create({title, description})
+      sendResponse(response, todo, 'OK', null);
+    }catch(e) {
+      sendResponse(response, null, 'BAD_REQUEST', e);
+    }
   }
 
   async CreateSubTodo(request, response) {
-    const id = uuidv4();
-    const parentid = request.params.id;
-    const ended = null;
-    const subdescription = request.body.subDescription;
-    const status = 'ACTIVE';
-    const sql = 'INSERT INTO todo_sub (id, parentid, created, ended, subdescription, status) VALUES (?, ?, now(), ?, ?, ?)';
-    const result = await query(sql, [id, parentid, ended, subdescription, status]);
-    sendResponse(response, result, 'OK', null);
+
+    try{
+      const parentid = request.params.id;
+      const subdescription = request.body.subdescription
+      const result = await Schema.SubTodos.create({parentid, subdescription})
+      sendResponse(response, result, 'OK', null);
+    } catch (error) {
+      sendResponse(response, null, 'BAD_REQUEST', error);
+    }
   }
 
   async ReadTodos(request, response) {
-    const { status } = request.query;
-    let sql = 'SELECT COUNT(id) AS count FROM todo_list WHERE status = ?';
-    const result = await query(sql, status);
-    if(result[0].count  > 0){
-      const total = result[0].count;
-      const numberOfPages = Math.ceil(total / LIMIT);
-      const page = request.query.page ? Number(request.query.page) : 1;
-      if (page > numberOfPages) {
-        sendResponse(response, null, 'BAD_REQUEST', 'Number of pages higher ');
-      }
-      if (page > numberOfPages) {
-        response.redirect(`/api/todos?page=${encodeURIComponent(numberOfPages)}`);
-      } else if (page < 1) {
-        response.redirect(`/api/todos?page=${encodeURIComponent('1')}`);
-      }
-      const startingLimit = (page - 1) * LIMIT;
-      const limit = LIMIT;
-      sql = `SELECT * FROM todo_list WHERE status = ? LIMIT ${startingLimit},${LIMIT} `;
-      const resultAll = await query(sql, status);
-      sendResponse(response, {data:resultAll, page:page, limit:limit, total:total}, 'OK', null);
-    } else {
-      sendResponse(response, null, 'BAD_REQUEST', 'No lists ');
-    }
-
+    const { page = 1, limit = 10} = request.query;
+    const result = await Schema.Todos.find().limit(limit * 1).skip((page - 1) * limit)
+    sendResponse(response, {total: result.length, result}, 'OK', null);
   }
 
   async ReadTodoHistory(request, response) {
-    const sql = 'SELECT * FROM todo_sub ;';
-    const result = await query(sql);
+    const result = Schema.SubTodos.find()
     sendResponse(response, result, 'OK', null);
   }
 
   async ReadSubtodosPerId(request, response) {
-    const { id } = request.params;
-    if (uuidValidate(id)) {
-      const sql = 'SELECT * FROM todo_sub WHERE parentid  = ?';
-      const result = await query(sql, id);
+    const {id} = request.params
+    try{
+      if (!id) {
+        sendResponse(response, null, 'BAD_REQUEST', 'Id didnt writen');
+      }
+      const result = await Schema.SubTodos.find({parentid: id})
       sendResponse(response, result, 'OK', null);
-    } else {
-      sendResponse(response, null, 'BAD_REQUEST', 'UUID is invalid');
+    } catch (error) {
+      sendResponse(response, null, 'BAD_REQUEST', error);
     }
   }
 
   async UpdateTodos(request, response) {
-    const { id } = request.params;
-    if (uuidValidate(id)) {
-      const sql = 'UPDATE todo_list SET status = \'DONE\' , ended = now()  WHERE id = ? ; ';
-      const result = await query(sql, id);
-      sendResponse(response, result, 'OK', null);
-    } else {
-      sendResponse(response, null, 'BAD_REQUEST', 'Not found in db this todo');
+    try {
+      const todo = request.body
+      if (!todo._id) {
+        sendResponse(response, null, 'BAD_REQUEST', 'UUID is invalid');
+      } 
+      const updateTodo = await Schema.Todos.findByIdAndUpdate(todo._id, todo, {new: true})
+      sendResponse(response, updateTodo, 'OK', null);
+    } catch(error) {
+      sendResponse(response, null, 'BAD_REQUEST', 'UUID is invalid');
     }
   }
 
@@ -103,35 +89,34 @@ class todoController {
     const { id } = request.params;
     const { status } = request.params;
     if (status === 'DONE') {
-      const sql = 'UPDATE todo_sub SET status = ? , ended = now()  WHERE id = ? ; ';
-      const result = await query(sql, [status, id]);
+      const result = await Schema.SubTodos.findOneAndUpdate(id, {status : status }, {new: true})
       sendResponse(response, result, 'OK', null);
     } else {
-      const sql = 'UPDATE todo_sub SET status = ? , ended = null  WHERE id = ? ; ';
-      const result = await query(sql, [status, id]);
+      const result = await Schema.SubTodos.findOneAndUpdate(id, {status : status }, {new: true})
       sendResponse(response, result, 'OK', null);
     }
   }
 
   async DeleteTodo(request, response) {
-    const { id } = request.params;
-    if (uuidValidate(id)) {
-      const sql = 'DELETE FROM todo_list WHERE id = ?';
-      const result = await query(sql, id);
-      sendResponse(response, result, 'OK', null);
-    } else {
-      sendResponse(response, null, 'BAD_REQUEST', 'There is no id in db to delete');
+    try{
+      const {id}  = request.params
+      if(!id) {
+        sendResponse(response, null, 'BAD_REQUEST', 'no id send');
+      }
+      const todo = await Schema.Todos.findByIdAndDelete(id)
+      sendResponse(response, todo, 'OK', null);
+    } catch (error) {
+      sendResponse(response, null, 'BAD_REQUEST', error);
     }
   }
 
   async DeleteSubtodo(request, response) {
     const { id } = request.params;
-    if (uuidValidate(id)) {
-      const sql = 'DELETE FROM todo_sub WHERE id = ?';
-      const result = await query(sql, id);
+    try{
+      const result = await Schema.SubTodos.findByIdAndDelete(id)
       sendResponse(response, result, 'OK', null);
-    } else {
-      sendResponse(response, null, 'BAD_REQUEST', 'There is no id in db to delete');
+    } catch(error) {
+      sendResponse(response, null, 'BAD_REQUEST', error);
     }
   }
 }

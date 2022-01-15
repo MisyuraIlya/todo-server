@@ -5,13 +5,15 @@ import session from 'express-session';
 import bodyParser from 'body-parser';
 import flash from 'express-flash';
 import cookieParser from 'cookie-parser';
+import mongoose from 'mongoose'
 // LOCAL
 import router from './router.js';
-import db from './config.js';
+// import db from './config.js';
+import Todo from './schema.js'
 
 const app = express();
 const PORT = 3001;
-
+const DB_URL = 'mongodb+srv://spetsar:730126890Ss@cluster0.wbu0w.mongodb.net/myFirstDatabase?retryWrites=true&w=majority'
 
 app.use(session({
   key: 'userId',
@@ -36,7 +38,7 @@ app.use('/api', router);
 
 async function startApp() {
   try {
-    await db.connect((err) => { if (err) throw err; console.log('DB Connected!'); });
+    await mongoose.connect(DB_URL)
     app.listen(PORT, () => { console.log(`SERVER STARTED ON PORT ${PORT}`); });
   } catch (error) {
     console.log(error);

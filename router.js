@@ -6,12 +6,12 @@ import authController from './authController.js';
 import validations from './validations.js';
 
 const router = new Router();
-router.post('/todos', validations.validatePostTodos, todoController.CreateTodo);
-router.post('/todos/:id/subtodos/', validations.validatePostSubTodos, todoController.CreateSubTodo);
-router.get('/todos', validations.validationGetAllTodos, todoController.ReadTodos);
+router.post('/todos', /*validations.validatePostTodos,*/ todoController.CreateTodo);
+router.post('/todos/:id/subtodos/', /*validations.validatePostSubTodos,*/ todoController.CreateSubTodo);
+router.get('/todos', /*validations.validationGetAllTodos, */ todoController.ReadTodos);
 router.get('/subhistory', todoController.ReadTodoHistory);
 router.get('/subtodos/:id', todoController.ReadSubtodosPerId); 
-router.put('/todos/:id', todoController.UpdateTodos); 
+router.put('/todos', todoController.UpdateTodos); 
 router.put('/subtodos/update/:id/:status', validations.validationPutSubtodosStatus, todoController.UpdateSubtodos);
 router.delete('/todos/:id', todoController.DeleteTodo); 
 router.delete('/subtodos/:id', todoController.DeleteSubtodo); 
