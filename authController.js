@@ -150,7 +150,6 @@ class authContoller {
   async SignInPost(request, response) {
     const email = request.body.email;
     const password = request.body.password;
-    console.log(email,password)
     try{
       const result = await Schema.Users.find({email: email, password:password})
       if (result.length > 0) {
@@ -183,6 +182,9 @@ class authContoller {
       const token =  request.headers.authorization.split(' ')[1];
       const decoded =  jwt.verify(token, process.env.JWT_ACCESS_SECRET);
       const data  = await redis_client.get(decoded.sub)
+      request.userData = decoded;
+
+      request.token = token;
       if(data.length > 0 & data != token) {
         next();
       } else {
@@ -195,14 +197,12 @@ class authContoller {
 
   async VerifyRefreshToken(request, response, next){
     const token = request.body.token;
-    console.log(token)
     if ( token === null) return sendResponse(response, null, 'BAD_REQUEST', 'invalid request');
     try{
       const decoded =  jwt.verify(token, process.env.JWT_REFRESH_SECRET);
       request.userData =  decoded
     const data = await redis_client.get(decoded.sub)
-    console.log(data)
-    if(JSON.parse(data).token.length > 0 & data != null & JSON.parse(data).token != token){
+    if(JSON.parse(data).token.length > 0 & data != null  & JSON.parse(data).token == token ){
       next();
     } else {
       sendResponse(response, null, 'BAD_REQUEST', 'invalid same token request');
@@ -231,13 +231,15 @@ class authContoller {
   }
 
   async LogOut(request, response) {
-    const email_id = request.userData.sub
+    const user_id = request.userData.sub;
+    console.log('this', request.userData)
+    const token = request.token;
 
-    //remove the refresh token
-    await redis_client.del(email_id.toString())
+    // remove the refresh token
+    await redis_client.del(user_id);
 
-    //blacklist current access token
-    await redis_client.set('BL_' + email._id.toString(), token );
+    // blacklist current access token
+    await redis_client.set(user_id, token);
      
     sendResponse(response, 'Logout success', 'OK', null);
   }
