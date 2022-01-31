@@ -2,8 +2,6 @@
 // LOCAL
 import httpStatusCodes from '../httpStatusCodes.js';
 import todoService from '../service/todo-service.js';
-// import Schema from './schema.js'
-
 function sendResponse(response, data = null, status = null, error = null) {
   return response.status(httpStatusCodes.status[status]).json({ status: httpStatusCodes.status[status], data, error });
 }
@@ -25,7 +23,7 @@ class todoController {
 
     try{
       const parentid = request.params.id;
-      const subdescription = request.body.subdescription
+      const subdescription = request.body.subDescription
       const result = await todoService.CreateSubTodo(parentid, subdescription)
       sendResponse(response, result, 'OK', null);
     } catch (error) {
@@ -35,9 +33,11 @@ class todoController {
 
   async ReadTodos(request, response) {
       try{
-            const { page = 1, limit = 10} = request.query;
-            const result = await todoService.ReadTodos(page, limit)
-            sendResponse(response, {total: result.length, result}, 'OK', null);
+            const { page = 1, limit = 2, status} = request.query;
+            const result = await todoService.ReadTodos(page, limit, status)
+            const data = result.response
+            const total = result.total
+            sendResponse(response, {total: total, limit: limit, data}, 'OK', null);
         } catch (error) {
             sendResponse(response, null, 'BAD_REQUEST', error);
         }
@@ -64,8 +64,8 @@ class todoController {
 
   async UpdateTodos(request, response) {
       try{
-        const todo = request.body
-        const result = await todoService.UpdateTodos(todo)
+        const { id } = request.params;
+        const result = await todoService.UpdateTodos(id)
         sendResponse(response, result, 'OK', null);
         } catch (error) {
             sendResponse(response, null, 'BAD_REQUEST', error);
@@ -85,6 +85,7 @@ class todoController {
   async DeleteTodo(request, response) {
     try{
       const {id}  = request.params
+      const test = request.params
       const result = await todoService.DeleteTodo(id)
       sendResponse(response, result, 'OK', null);
     } catch (error) {

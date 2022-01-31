@@ -1,7 +1,6 @@
 
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import redis_client from '../redis_connect.js'
 import TokenModel from '../models/token-model.js'
 
 dotenv.config();
@@ -36,14 +35,12 @@ class TokenService {
     async saveToken(userId, refreshToken) {
         const tokenData = await TokenModel.findOne(userId)
         if (tokenData) {
-            // await redis_client.set(tokenData,  JSON.stringify({token: refresh_token}));
             tokenData.refreshToken =  refreshToken
             return tokenData.save();
         } 
 
         const token = await TokenModel.create({user: userId, refreshToken})
         return token;
-        //token
     }
 
     async removeToken(refreshToken){

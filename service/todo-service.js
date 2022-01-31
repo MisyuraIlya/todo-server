@@ -18,12 +18,13 @@ class todoService {
         return response
     }
 
-    async ReadTodos(page, limit){
-        const response = await TodosModel.find().limit(limit * 1).skip((page - 1) * limit)
+    async ReadTodos(page, limit, status){
+        const response = await TodosModel.find({status}).limit(limit * 1).skip((page - 1) * limit)
+        const total = await TodosModel.count({status})
         if(!response) {
             throw ApiError.BadRequest(`no data found`)
         }
-        return response
+        return {response,total}
     }
 
     async ReadTodoSubHistory(){
@@ -42,8 +43,8 @@ class todoService {
         return response
     }
 
-    async UpdateTodos(todo){
-        const response = await TodosModel.findByIdAndUpdate(todo._id, todo, {new: true})
+    async UpdateTodos(id){
+        const response = await TodosModel.findByIdAndUpdate(id, {status: 'DONE', ended: Date.now()}, {new: true})
         if(!response) {
             throw ApiError.BadRequest(`no data found`)
         }
@@ -53,13 +54,13 @@ class todoService {
 
     async UpdateSubtodos(id, status){
         if (status === 'DONE') {
-            const response = await SubTodosModel.findOneAndUpdate(id, {status : status }, {new: true})
+            const response = await SubTodosModel.findByIdAndUpdate(id, {status : status, ended: Date.now() }, {new: true})
             if(!response) {
                 throw ApiError.BadRequest(`no data found`)
             }
             return response
           } else {
-            const response = await SubTodosModel.findOneAndUpdate(id, {status : status }, {new: true})
+            const response = await SubTodosModel.findByIdAndUpdate(id, {status : status, ended: null}, {new: true})
             if(!response) {
                 throw ApiError.BadRequest(`no data found`)
             }

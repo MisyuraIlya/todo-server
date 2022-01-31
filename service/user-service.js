@@ -36,10 +36,8 @@ class UserService {
 
     async login(email, password){
       const user = await User.findOne({email})
-      console.log(user)
       if (!user){
-        console.log('error')
-        throw ApiError.BadRequest('Account with this email didnt find') // not work
+        throw ApiError.BadRequest('Account with this email didnt find') 
       }
       const isPasswordEquals = await bcrypt.compare(password, user.password)
       if (!isPasswordEquals) {
