@@ -36,9 +36,7 @@ class UserService {
 
     async login(email, password){
       const user = await User.findOne({email})
-      console.log(user)
       if (!user){
-        console.log('error')
         throw ApiError.BadRequest('Account with this email didnt find') // not work
       }
       const isPasswordEquals = await bcrypt.compare(password, user.password)
@@ -61,7 +59,7 @@ class UserService {
         throw ApiError.UnauthirizedError();
       }
       const userData = tokenService.validateRefreshToken(refreshToken);
-      const tokenFromDb = await tokenService.findToken(refreshToken);
+      const tokenFromDb = await tokenService.findToken(userData.id, refreshToken);
       if(!userData || !tokenFromDb) {
           throw ApiError.UnauthirizedError();
       }

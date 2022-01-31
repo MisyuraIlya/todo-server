@@ -34,25 +34,22 @@ class TokenService {
     }
 
     async saveToken(userId, refreshToken) {
-        const tokenData = await TokenModel.findOne(userId)
+        const tokenData = await redis_client.get(userId.toString())
         if (tokenData) {
-            // await redis_client.set(tokenData,  JSON.stringify({token: refresh_token}));
-            tokenData.refreshToken =  refreshToken
-            return tokenData.save();
+             const redis = await redis_client.set(userId.toString(),  refreshToken);
+            return redis
         } 
-
-        const token = await TokenModel.create({user: userId, refreshToken})
+        const token = await redis_client.set(userId.toString(), refreshToken)
         return token;
-        //token
     }
 
     async removeToken(refreshToken){
-        const tokenData = await TokenModel.deleteOne({refreshToken})
+        const tokenData = await redis_client.del(refreshToken)
         return tokenData;
     }
 
-    async findToken(refreshToken){
-        const tokenData = await TokenModel.findOne({refreshToken})
+    async findToken(userId, refreshToken){
+        const tokenData = await redis_client.get(userId)
         return tokenData;
     }
 

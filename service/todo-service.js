@@ -20,7 +20,7 @@ class todoService {
 
     async ReadTodos(page, limit, status){
         const response = await TodosModel.find({status}).limit(limit * 1).skip((page - 1) * limit)
-        const total = await TodosModel.count({})
+        const total = await TodosModel.count({status})
         if(!response) {
             throw ApiError.BadRequest(`no data found`)
         }

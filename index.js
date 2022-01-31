@@ -7,11 +7,8 @@ import flash from 'express-flash';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose'
 // LOCAL
-// import router from './router.js';
 import routerAuth from './router/auth-router.js';
 import routerTodo from './router/todo-router.js';
-// import db from './config.js';
-// import Todo from './schema.js'
 import errorMiddleware from './middlewares/error-middleware.js';
 import dotenv from 'dotenv';
 dotenv.config();

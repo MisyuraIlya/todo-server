@@ -3,7 +3,7 @@ import tokenService from "../service/token-service.js";
 export default function (request, response, next){
     try{
         const authorizationHeader = request.headers.authorization;
-        console.log(authorizationHeader)
+        console.log('this',authorizationHeader)
         if(!authorizationHeader){
             return next(ApiError.UnauthirizedError());
         }
