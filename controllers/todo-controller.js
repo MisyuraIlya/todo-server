@@ -67,7 +67,6 @@ class todoController {
   async UpdateTodos(request, response) {
       try{
         const { id } = request.params;
-        console.log(id)
         const result = await todoService.UpdateTodos(id)
         sendResponse(response, result, 'OK', null);
         } catch (error) {

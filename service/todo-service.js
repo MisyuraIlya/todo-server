@@ -44,9 +44,7 @@ class todoService {
     }
 
     async UpdateTodos(id){
-        console.log(id)
         const response = await TodosModel.findByIdAndUpdate(id, {status: 'DONE', ended: Date.now()}, {new: true})
-        console.log(response)
         if(!response) {
             throw ApiError.BadRequest(`no data found`)
         }
@@ -57,14 +55,12 @@ class todoService {
     async UpdateSubtodos(id, status){
         if (status === 'DONE') {
             const response = await SubTodosModel.findByIdAndUpdate(id, {status : status, ended: Date.now() }, {new: true})
-            console.log(response)
             if(!response) {
                 throw ApiError.BadRequest(`no data found`)
             }
             return response
           } else {
             const response = await SubTodosModel.findByIdAndUpdate(id, {status : status, ended: null}, {new: true})
-            console.log(response)
             if(!response) {
                 throw ApiError.BadRequest(`no data found`)
             }
