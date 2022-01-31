@@ -48,7 +48,7 @@ class TokenService {
         return tokenData;
     }
 
-    async findToken(userId, refreshToken){
+    async findToken(userId){
         const tokenData = await redis_client.get(userId)
         return tokenData;
     }

@@ -20,7 +20,6 @@ class UserController {
             response.cookie('refreshToken', userData.refreshToken, {maxAge:  30 * 24 * 60 * 60 * 1000, httpOnly: true})
             sendResponse(response, userData, 'OK', null);
         } catch(error){
-            // sendResponse(response, null, 'BAD_REQUEST', error);
             next(error);
         }
     }
@@ -54,7 +53,6 @@ class UserController {
             // return response.redirect(process.env.CLIENT_URL) // use if fronend and backend different hosts
             sendResponse(response, 'succsesfuly activate', 'OK', null);
         } catch(error){
-            // sendResponse(response, null, 'BAD_REQUEST', error);
             next(error);
         }
     }
@@ -69,16 +67,6 @@ class UserController {
             next(error);
         }
     }
-
-    async getUsers(request, response, next) {
-        try{
-            const users = await userService.getAllUsers();
-            sendResponse(response, users, 'OK', null);
-        } catch(error){
-            next(error);
-        }
-    }
-
 }
 
 export default new UserController();
