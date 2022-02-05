@@ -40,6 +40,7 @@ class TokenService {
             return redis
         } 
         const token = await redis_client.set(userId.toString(), refreshToken)
+        console.log(token)
         return token;
     }
 

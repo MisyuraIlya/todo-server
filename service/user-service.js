@@ -11,6 +11,7 @@ dotenv.config();
 class UserService {
     async registration(name, lastname, email, password, phone) {
             const candidate = await User.findOne({email})
+            console.log(candidate)
             if (candidate) {
               throw ApiError.BadRequest(`email with this ${email} used`)
             } else {
@@ -35,7 +36,9 @@ class UserService {
     }
 
     async login(email, password){
+      console.log('123')
       const user = await User.findOne({email})
+      console.log(user)
       if (!user){
         throw ApiError.BadRequest('Account with this email didnt find') // not work
       }
@@ -44,6 +47,7 @@ class UserService {
         throw ApiError.BadRequest('Uncorrect password')
       }
       const userDto = new UserDto(user);
+      console.log('1')
       const tokens = tokenService.generateTokens({...userDto});
       await tokenService.saveToken(userDto.id,tokens.refreshToken)
       return { ...tokens, user:userDto}

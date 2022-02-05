@@ -16,6 +16,7 @@ class UserController {
                 return next(ApiError.BadRequest('Invaild validation',errors.array()))
             }
             const {name, lastname, email, password, phone} = request.body;
+            console.log(name, lastname, email, password, phone)
             const userData =  await userService.registration(name, lastname, email, password, phone);
             response.cookie('refreshToken', userData.refreshToken, {maxAge:  30 * 24 * 60 * 60 * 1000, httpOnly: true})
             sendResponse(response, userData, 'OK', null);
@@ -27,7 +28,9 @@ class UserController {
     async login(request, response, next) {
         try{
             const {email, password} = request.body;
+            console.log(email, password)
             const userData = await userService.login(email, password)
+            console.log(userData)
             response.cookie('refreshToken', userData.refreshToken, {maxAge:  30 * 24 * 60 * 60 * 1000, httpOnly: true})
             sendResponse(response, userData, 'OK', null);
         } catch(error){
@@ -50,8 +53,8 @@ class UserController {
         try{
             const activationLink = request.params.link
             await userService.activate(activationLink)
-            // return response.redirect(process.env.CLIENT_URL) // use if fronend and backend different hosts
-            sendResponse(response, 'succsesfuly activate', 'OK', null);
+            return response.redirect(process.env.CLIENT_URL) // use if fronend and backend different hosts
+            // sendResponse(response, 'succsesfuly activate', 'OK', null);
         } catch(error){
             next(error);
         }
