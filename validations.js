@@ -1,4 +1,9 @@
 import { body, validationResult } from 'express-validator';
+import httpStatusCodes from './httpStatusCodes.js';
+
+function sendResponse(response, data = null, status = null, error = null) {
+  return response.status(httpStatusCodes.status[status]).json({ status: httpStatusCodes.status[status], data, error });
+}
 
 class validation {
   validatePostTodos(request, response, next) {
@@ -12,8 +17,6 @@ class validation {
   validatePostSubTodos(request, response, next) {
     const parentid = request.params.id;
     const { subDescription } = request.body;
-    const data = validateData();
-    console.log(data);
     if (!parentid || !subDescription) {
       sendResponse(response, null, 'BAD_REQUEST', 'title didnt writen', null);
     }
@@ -40,26 +43,35 @@ class validation {
 
   validationEmail() {
     return [
-      // username must be an email
       body('email').isEmail(),
-      // password must be at least 5 chars long
       body('password').isLength({ min: 5 }),
     ];
   }
 
   validationSignUp(request, response, next) {
+    const extractedErrors = [];
+
     const errors = validationResult(request);
     const { name } = request.body;
     const { lastname } = request.body;
     const { phone } = request.body;
+    
     if (errors.isEmpty() && isNaN(name) && isNaN(lastname) && !isNaN(phone)) {
       return next();
-    }
-    const extractedErrors = [];
+    } else {
+      if(!isNaN(name)) {
+        extractedErrors.push({name:'name contain number'})
+      }
+      if(!isNaN(lastname)){
+        extractedErrors.push({lastname: 'lastname contain number'})
+      }
+      if(isNaN(phone)){
+        extractedErrors.push({phone: 'phone contain caracther'})
+      }
+    } 
+
     errors.array().map((err) => extractedErrors.push({ [err.param]: err.msg }));
-    return response.status(422).json({
-      errors: extractedErrors,
-    });
+     sendResponse(response, null, 'ENTITY', extractedErrors);
   }
 }
 
