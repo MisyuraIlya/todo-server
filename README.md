@@ -3,7 +3,9 @@
 RESTful API based on Expressjs.
 
 ## Features
-* Sign up/sign in (JWT, bcrypt, Mysql-cookie) - in .env file can switch between JWT or cookie 
+* Sign up/sign in (JWT, bcrypt, Mysql-cookie) - DB_TYPE: mongodb/mysql
+  ** mongodb - JWT, bcrypt authentication
+  ** 
 * Reset password 
 * Two data bases mysql and mongodb (can switch in .env file)
 * CRUD (Create, Read, Update, Delete) - todo service
@@ -29,3 +31,15 @@ SMTP_PASSWORD=kpxoemypopltbmje
 API_URL=http://dev.local:3001
 CLIENT_URL=http://dev.local:3000
 ```
+
+## Call the API
+As best practice, use these headers to make requests to the API:
+``
+Content-Type:application/x-www-form-urlencoded
+Accept:application/json
+``
+When signed in, you must provide the access token:
+``
+Authorization: <Access_token>
+``
+
